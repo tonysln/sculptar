@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <div class="page-info">
+        <div>
+            <h3>{{ '500 Server Error' }}</h3>
+            <p>{{ 'The server encountered an internal error.' }}</p>
+        </div>
+
+        <br>
+        <a href="{{ url_for('index') }}">&lt; {{ 'Back' }}</a>
+    </div>
+</div>
+
+{% endblock %}

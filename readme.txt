@@ -1,6 +1,6 @@
 # Sculptura Tarbatum
 
-Tartu linna skulptuuride, mälestuskivide ja mälestustahvlite loend.
+Tartu skulptuuride, mälestuskivide ja mälestustahvlite loend.
 
 Olemasolevad allikad:
 
@@ -13,37 +13,3 @@ Olemasolevad allikad:
 
 Palju puudujääke, vähemtähtsad monumendid pole kuskil kirjaski.
 
-
-Entry:
-* ID 						int
-* Reg Nr?					str		
-* Nimi						str
-* Tüüp						str/FK
-* Liik						str/FK
-* Aadress					str
-* Arvel/registreeritud		DateTime
-* Viimati nähtud			DateTime
-* Koordinaadid 				str?
-* Kirjeldus					str
-* Galerii					Image[]
-* Välislingid				str[]
-* Autor						User
-
-
-Image:
-* ID 						int
-* entry						int/FK
-* orig_filename				str
-* filename 					str
-* URL 						str
-* thumb_URL 				str
-* identifier				str
-* uploader					User
-
-
-User:
-* ID 						int
-* username					str
-* full_name					str
-* email						str
-* password_hash				str

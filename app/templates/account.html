@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+	
+	<div class="container">
+	    <div class="page-info">
+	    	<h2>{{ 'Account' }}</h2>
+	    	<br>
+
+	    	<p>{{ current_user.username }}</p>
+	    	<p>{{ current_user.full_name }}</p>
+	    	<p>{{ current_user.email }}</p>
+	    	<p>Admin: {{ 'Yes' if current_user.is_admin else 'No' }}</p>
+	    	<p>Created At: {{ current_user.created_at }}</p>
+	    	<p>Last Login: {{ current_user.last_login }}</p>
+
+	    	<br>
+	    	<h3>Entries</h3>
+	    	<p>Total: {{ current_user.entries|length }}</p>
+	    	{% for item in current_user.entries %}
+	    	            
+	            <div style="text-align: center;">
+	                {{ item }}
+	            </div>
+
+	        {% endfor %}
+	    </div>
+    </div>
+
+{% endblock %}

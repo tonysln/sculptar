@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Tartu skulptuuride, mälestuskivide ja mälestustahvlite loend.">
+
+        {% if title %}
+        <title>{{ title }} - Sculptura Tarbatum</title>
+        {% else %}
+        <title>Sculptura Tarbatum</title>
+        {% endif %}
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='reset.css') }}" />
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    </head>
+    <body>
+        <div class="main-container">
+            <header>
+                <div class="container">
+                    <h1>SCULPTURA TARBATUM</h1>
+
+                    <nav>
+                        <a href="{{ url_for('index') }}">{{ 'Home' }}</a>
+                        | <a href="{{ url_for('monuments') }}">{{ 'Monuments' }}</a>
+                        
+                        {% if current_user.is_anonymous %}
+                        
+                        | <a href="{{ url_for('register') }}">{{ 'Register' }}</a>
+                        | <a href="{{ url_for('login') }}">{{ 'Log In' }}</a>
+                        
+                        {% else %}
+
+                        | <a href="{{ url_for('account') }}">{{ 'Account' }}</a>
+                        | <a href="{{ url_for('admin') }}">{{ 'Admin' }}</a>
+                        | <a href="{{ url_for('logout') }}">{{ 'Logout' }}</a>
+                        
+                        {% endif %}
+                    </nav>
+                </div>
+            </header>
+
+            <section>
+                <div class="container">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                        
+                        <div class="flash-messages">
+                            <ul>
+                                {% for message in messages %}
+                                    <li>{{ message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </section>
+
+            <main>
+                {% block content %}{% endblock %}
+            </main>
+
+            <footer>
+                <div class="container">
+                    <small>
+                        <span>{{ '© 2025 Sculptura Tarbatum. All rights reserved.' }}</span>
+                    </small>
+                </div>
+            </footer>
+        </div>
+
+    </body>
+</html>

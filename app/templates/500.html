@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+	<div class="page-info">
+		<div>
+	    	<h3>{{ '404 Not Found' }}</h3>
+	    	<p>{{ 'The requested resource can not be found.' }}</p>
+		</div>
+
+		<br>
+		<a href="{{ url_for('index') }}">&lt; {{ 'Back' }}</a>
+	</div>
+</div>
+
+{% endblock %}
