@@ -71,6 +71,7 @@ class Monument(db.Model):
     # Last physical sighting
     last_seen: so.Mapped[datetime] = so.mapped_column(index=True, default=lambda: datetime.now())
 
+    # TODO order of images
     gallery: so.Mapped[list["Photo"]] = so.relationship(
         back_populates="monument",
         cascade="all, delete-orphan"

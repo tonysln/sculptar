@@ -4,19 +4,19 @@
 	
 	<div class="container">
 	    <div class="page-info">
-	    	<h2>{{ 'Account' }}</h2>
+	    	<h2>{{ 'Konto' }}</h2>
 	    	<br>
 
-	    	<p>{{ current_user.username }}</p>
-	    	<p>{{ current_user.full_name }}</p>
-	    	<p>{{ current_user.email }}</p>
-	    	<p>Admin: {{ 'Yes' if current_user.is_admin else 'No' }}</p>
-	    	<p>Created At: {{ current_user.created_at }}</p>
-	    	<p>Last Login: {{ current_user.last_login }}</p>
+	    	<p><strong>Kasutajanimi:</strong> {{ current_user.username }}</p>
+	    	<p><strong>Nimi:</strong> {{ current_user.full_name }}</p>
+	    	<p><strong>Meil:</strong> {{ current_user.email }}</p>
+	    	<p><strong>On admin:</strong>  {{ 'JAH' if current_user.is_admin else 'EI' }}</p>
+	    	<p><strong>Loodud:</strong>  {{ current_user.created_at }}</p>
+	    	<p><strong>Viimati sisse logitud:</strong>  {{ current_user.last_login }}</p>
 
 	    	<br>
-	    	<h3>Entries</h3>
-	    	<p>Total: {{ current_user.entries|length }}</p>
+	    	<h3>Lisatud skulptuurid</h3>
+	    	<p>Kokku: {{ current_user.entries|length }}</p>
 	    	{% for item in current_user.entries %}
 	    	            
 	            <div style="text-align: center;">

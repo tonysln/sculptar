@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+	$(function() {
+		// Default values for Country and City input fields
+		$("#country").val('EE');
+		$("#locality").val('Tartu');
+
+
+		// Order of uploaded photos
+		let updatedIds = []; // TODO actually save order somehow, add to DB
+
+		$("#preview").sortable({placeholder: "ui-state-highlight"});
+	    $("#preview").disableSelection();
+	    $("#preview").sortable({
+	        update: function(event, ui) {
+	            updatedIds.push(ui.item[0]);
+	        }
+	    });
+
+
+	    // Leaflet map
+	    const attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+	    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+
+	    const tartu = [58.378025, 26.728493];
+	    const lmap = L.map('map');
+	    const tiles = L.tileLayer(tileUrl);
+	    const marker = L.marker(tartu);
+
+	    tiles.addTo(lmap);
+	    lmap.attributionControl.addAttribution(attr);
+	    lmap.setView(tartu, 13);
+	    lmap.on('click', async function(e) {
+          let lat = e.latlng.lat;
+          let lon = e.latlng.lng;
+
+          // Reverse geocoding (Nominatim API)
+          let url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+
+          let res = await fetch(url, { headers: { 'User-Agent': 'LeafletExample' }}); // TODO
+          let data = await res.json();
+
+          let address = data.display_name || "No address found"; // TODO extract street and ZIP
+
+          console.log(lat, lon, address);
+          marker.setLatLng([lat, lon]);
+          marker.addTo(lmap);
+
+          $("#lat").val(lat);
+          $("#lon").val(lon); // TODO also reverse -- update map based on inputs!?
+        });
+	});
+
+
+	// Populate uploaded photo preview thumbnails 
+	const fi = document.getElementById('photos');
+	const preview = document.getElementById('preview');
+
+	fi.addEventListener('change', function() {
+	  	preview.innerHTML = ""; // clear old thumbnails
+		Array.from(fi.files).forEach(file => {
+			if (!file.type.startsWith('image/')) 
+				return;
+
+			const img = document.createElement('img');
+			img.src = URL.createObjectURL(file);
+			preview.appendChild(img);
+		});
+	}, false);
+</script>
+
+<div class="container">
+	<form action="" method="post" enctype="multipart/form-data" novalidate>
+		    {{ form.hidden_tag() }}
+
+		    <div class="page-info">
+		        <h3>{{ 'Lisa uus skulptuur' }}</h3>
+
+		        <br>
+		        <p>{{ 'Fotod' }}</p>
+				
+				    <p>
+				        {{ form.photos }}<br>
+
+				        <span style="color: red;" id="photos-errors">{{ error }}</span>
+				        {% for error in form.photos.errors %}
+				        <span style="color: red;">{{ error }}</span>
+				        {% endfor %}
+				    </p>				
+		    </div>
+
+		    <br>
+		    <div class="photos-grid" id="preview"> 
+		    </div>
+		    <br>
+
+		    <div class="">
+				<div class="two-col"> 
+				    <div>
+				        <p>
+				        	{{ form.name.label }}<br>
+				        	{{ form.name(size=32, required='required') }}<br>
+
+				        	{% for error in form.name.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.creator.label }}<br>
+				        	{{ form.creator(size=32) }}<br>
+
+				        	{% for error in form.creator.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.comment.label }}<br>
+				        	{{ form.comment }}<br>
+
+				        	{% for error in form.comment.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.links.label }}<br>
+				        	{{ form.links }}<br>
+
+				        	{% for error in form.links.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.built.label }}<br>
+				        	{{ form.built }}<br>
+
+				        	{% for error in form.built.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        
+				    </div>
+
+				    <div>
+		    	        <p>
+		    	        	{{ form.width_cm.label }}<br>
+		    	        	{{ form.width_cm(size=10) }}<br>
+
+		    	        	{% for error in form.width_cm.errors %}
+		    		        <span style="color: red;">{{ error }}</span>
+		    		        {% endfor %}
+		    	        </p>
+		    	        <p>
+		    	        	{{ form.length_cm.label }}<br>
+		    	        	{{ form.length_cm(size=10) }}<br>
+
+		    	        	{% for error in form.length_cm.errors %}
+		    		        <span style="color: red;">{{ error }}</span>
+		    		        {% endfor %}
+		    	        </p>
+		    	        <p>
+		    	        	{{ form.height_cm.label }}<br>
+		    	        	{{ form.height_cm(size=10) }}<br>
+
+		    	        	{% for error in form.height_cm.errors %}
+		    		        <span style="color: red;">{{ error }}</span>
+		    		        {% endfor %}
+		    	        </p>
+		    	        <p>
+				        	{{ form.multiple }} {{ form.multiple.label }}
+				        	<br>
+
+				        	{% for error in form.multiple.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				    </div>
+				</div>
+
+				<br>
+			    <div class="map-view" id="map"> 
+			    </div>
+			    <br>
+
+				<div class="two-col">
+					<div>
+						<p>
+				        	{{ form.reg_id.label }}<br>
+				        	{{ form.reg_id(size=32) }}<br>
+
+				        	{% for error in form.reg_id.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.osm_id.label }}<br>
+				        	{{ form.osm_id(size=32) }}<br>
+
+				        	{% for error in form.osm_id.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.wikidata.label }}<br>
+				        	{{ form.wikidata(size=32) }}<br>
+
+				        	{% for error in form.wikidata.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.genre.label }}<br>
+				        	{{ form.genre(size=32) }}<br>
+
+				        	{% for error in form.genre.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.lat.label }}<br>
+				        	{{ form.lat(size=32) }}<br>
+
+				        	{% for error in form.lat.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.lon.label }}<br>
+				        	{{ form.lon(size=32) }}<br>
+
+				        	{% for error in form.lon.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        
+					</div>
+
+					<div>
+						<p>
+				        	{{ form.country.label }}<br>
+				        	{{ form.country(size=6) }}<br>
+
+				        	{% for error in form.country.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.locality.label }}<br>
+				        	{{ form.locality(size=32) }}<br>
+
+				        	{% for error in form.locality.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.address.label }}<br>
+				        	{{ form.address(size=32) }}<br>
+
+				        	{% for error in form.address.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+				        <p>
+				        	{{ form.zip_code.label }}<br>
+				        	{{ form.zip_code(size=10) }}<br>
+
+				        	{% for error in form.zip_code.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+
+				        <p>
+				        	{{ form.last_seen.label }}<br>
+				        	{{ form.last_seen }}<br>
+
+				        	{% for error in form.last_seen.errors %}
+					        <span style="color: red;">{{ error }}</span>
+					        {% endfor %}
+				        </p>
+					</div>
+				</div>
+
+				<br>
+				<br>
+
+		        <div>
+		        	<span>{{ form.submit() }}</span>
+		        </div>
+			</div>
+	</form>
+
+	<br>
+
+	<div class="page-info">
+		<small><a href="{{ url_for('monuments') }}" class="ext-link">&lt; {{ 'Tagasi' }}</a></small>
+	</div>
+
+</div>
+
+{% endblock %}

@@ -24,7 +24,7 @@ class Config:
     UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.jp2', '.j2k']
     THUMB_SIZE = (300,300)
 
-    LANGUAGES = ['en', 'et']
+    LANGUAGES = ['et']
 
     SESSION_COOKIE_SAMESITE = "strict"
     SESSION_COOKIE_SECURE = True
