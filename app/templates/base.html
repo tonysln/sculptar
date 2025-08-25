@@ -23,6 +23,7 @@
                     <nav>
                         <a href="{{ url_for('index') }}">{{ 'Kodu' }}</a>
                         | <a href="{{ url_for('monuments') }}">{{ 'Skulptuurid' }}</a>
+                        | <a href="{{ url_for('map') }}">{{ 'Kaart' }}</a>
                         
                         {% if current_user.is_anonymous %}
                         

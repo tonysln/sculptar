@@ -72,7 +72,7 @@ class MonumentService():
 
     @staticmethod
     def get_all_monuments_with_photos():
-        """Fetch and return all monuments"""
+        """Fetch and return all monuments, excluding photo keys and filename fields"""
         items = db.session.scalars(db.select(Monument).order_by(Monument.created_at.desc())).all()
         result = []
         for m in items:
@@ -94,6 +94,21 @@ class MonumentService():
                 "gallery": [{"id": p.id, "thumb_url": p.thumb_url, 
                             "full_url": p.full_url, "caption": p.caption} 
                             for p in m.gallery]
+            })
+        return result
+
+    @staticmethod
+    def get_all_monuments_locations():
+        """Fetch and return all monuments for drawing on a map"""
+        cols = [Monument.id, Monument.lat, Monument.lon, Monument.name]
+        items = db.session.execute(db.select(*cols).order_by(Monument.created_at.desc())).all()
+        result = []
+        for m in items:
+            result.append({
+                "id": m.id,
+                "name": m.name,
+                "lat": m.lat,
+                "lon": m.lon
             })
         return result
 

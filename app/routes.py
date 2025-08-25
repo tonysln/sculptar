@@ -20,6 +20,12 @@ def index():
     return render_template('index.html', title='Kodu')
 
 
+@app.route('/map')
+def map():
+    items = MonumentService.get_all_monuments_locations()
+    return render_template('map.html', title='Kaart', entries=items)
+
+
 @app.route('/monuments')
 def monuments():
     items = MonumentService.get_all_monuments_with_photos()
@@ -30,7 +36,7 @@ def monuments():
 @login_required
 def create():
     form = CreateEntryForm()
-    if form.validate_on_submit():
+    if form.validate_on_submit() and current_user.is_authenticated:
         d = {'name': form.name.data.strip(), 
             'creator': form.creator.data.strip(),
             'comment': form.comment.data.strip(),
