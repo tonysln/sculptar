@@ -4,6 +4,7 @@ from flask_login import login_user, current_user
 from werkzeug.utils import secure_filename
 from app import app, db
 import sqlalchemy as sa
+from sqlalchemy.orm import joinedload, load_only
 from PIL import Image
 import cloudinary
 import cloudinary.uploader
@@ -70,12 +71,31 @@ class MonumentService():
         return new_monument_id
 
     @staticmethod
-    def get_all_monuments():
+    def get_all_monuments_with_photos():
         """Fetch and return all monuments"""
-        items = db.session.scalars(
-                    db.select(Monument).order_by(Monument.created_at.desc()) # TODO customize Photo view: strip out keys and filename [!!!]
-                ).all()
-        return items
+        items = db.session.scalars(db.select(Monument).order_by(Monument.created_at.desc())).all()
+        result = []
+        for m in items:
+            result.append({
+                "id": m.id,
+                "name": m.name, "creator": m.creator,
+                "comment": m.comment, "links": m.links,
+                "built": m.built, "multiple": m.multiple,
+                "reg_id": m.reg_id, "osm_id": m.osm_id,
+                "wikidata": m.wikidata, "genre": m.genre,
+                "country": m.country, "locality": m.locality,
+                "address": m.address, "zip_code": m.zip_code,
+                "lat": m.lat, "lon": m.lon,
+                "width_cm": m.width_cm, "length_cm": m.length_cm,
+                "height_cm": m.height_cm, "last_seen": m.last_seen,
+                "removed": m.removed, "uploader": m.uploader.username,
+                "created_at": m.created_at, "last_edit": m.last_edit,
+                "needs_info": m.needs_info, "needs_photos": m.needs_photos,
+                "gallery": [{"id": p.id, "thumb_url": p.thumb_url, 
+                            "full_url": p.full_url, "caption": p.caption} 
+                            for p in m.gallery]
+            })
+        return result
 
 
 class PhotoService():

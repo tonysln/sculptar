@@ -22,7 +22,7 @@ def index():
 
 @app.route('/monuments')
 def monuments():
-    items = MonumentService.get_all_monuments()
+    items = MonumentService.get_all_monuments_with_photos()
     return render_template('monuments.html', title='Skulptuurid', entries=items)
 
 
