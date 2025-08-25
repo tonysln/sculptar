@@ -1,20 +1,19 @@
 from flask import make_response
 from app.models import User, Monument, Photo
-from flask_login import login_user
+from flask_login import login_user, current_user
+from werkzeug.utils import secure_filename
 from app import app, db
 import sqlalchemy as sa
 from PIL import Image
-from werkzeug.utils import secure_filename
+import cloudinary
+import cloudinary.uploader
+import cloudinary.exceptions
 from datetime import datetime
 import uuid
 import os
 
 
-class Service:
-    pass
-
-
-class UserService(Service):
+class UserService():
     @staticmethod
     def get_user_by_username(username):
         """Return user entry with specific given username"""
@@ -38,7 +37,130 @@ class UserService(Service):
         user.set_password(data['password'])
 
         app.logger.info('[!] New user registration: %s - %s', user.username, user.full_name, user.email)
+        new_user_id = user.id
 
         db.session.add(user)
         db.session.commit()
-        return True
+        return new_user_id
+
+
+class MonumentService():
+    @staticmethod
+    def post_monument(data):
+        """Create and save new monument entry from given data"""
+        data['user_id'] = current_user.id
+        exclude = {"photos", "order"}
+
+        monument = Monument(**{k: v for k, v in data.items() if k in Monument.__table__.columns and k not in exclude and v is not None})
+
+        db.session.add(monument)
+        db.session.flush()
+
+        for photo in data['photos']:
+            # TODO order
+
+            pdata = {'file': photo, 'monument_id': monument.id}
+            new_photo = PhotoService.post_photo_and_flush(pdata)
+            monument.gallery.append(new_photo)
+
+        app.logger.info('[!] New monument entry: %s, created by: %s', monument.name, current_user.username)
+        new_monument_id = monument.id
+
+        db.session.commit()
+        return new_monument_id
+
+    @staticmethod
+    def get_all_monuments():
+        """Fetch and return all monuments"""
+        items = db.session.scalars(
+                    db.select(Monument).order_by(Monument.created_at.desc()) # TODO customize Photo view: strip out keys and filename [!!!]
+                ).all()
+        return items
+
+
+class PhotoService():
+    cloudinary.config(
+        cloud_name = app.config['CLOUDINARY_NAME'],
+        api_key = app.config['CLOUDINARY_API_KEY'],
+        api_secret = app.config['CLOUDINARY_API_SECRET'],
+        secure = True
+    )
+
+    @staticmethod
+    def generate_safe_filename(fname):
+        orig_filename = secure_filename(fname)
+        dt = datetime.now().strftime("%Y%m%d")
+        uid = str(uuid.uuid4())[:8]
+        filename =  f'{dt}-{uid}.{orig_filename.split(".")[-1]}'
+        return filename
+
+    @staticmethod
+    def upload_to_cloudinary(fpath, folder):
+        upload_result = cloudinary.uploader.upload(fpath, resource_type="image", folder=folder)
+        furl = upload_result["secure_url"]
+        fkey = upload_result["public_id"]
+        assert furl
+        assert fkey
+        app.logger.info('Uploaded image to cloudinary: %s', fkey)
+        return (furl, fkey)
+
+    @staticmethod
+    def cleanup_tmp_file(fpath):
+        try:
+            os.remove(fpath)
+        except OSError as e:
+            app.logger.info('Failed to delete temporary image files from /tmp: %s', e)
+
+    @staticmethod
+    def upload_thumbnail(f, folder='/thumb'):
+        filename =  PhotoService.generate_safe_filename(f.filename)
+        tpath = f'/tmp/webapp/flask_upload_servicer/cloudinary/thumb_{filename}'
+
+        with Image.open(f) as im:
+            im.thumbnail(app.config['THUMB_SIZE'])
+            im.save(tpath, "JPEG")
+            app.logger.info('Saved resized thumbnail to tmp path: %s', tpath)
+
+        thumb_url, thumb_key = PhotoService.upload_to_cloudinary(tpath, folder)
+        PhotoService.cleanup_tmp_file(tpath)
+
+        return (thumb_url, thumb_key)
+
+    @staticmethod
+    def upload_photo(f, folder='/fullimg'):
+        filename =  PhotoService.generate_safe_filename(f.filename)
+        tpath = f'/tmp/webapp/flask_upload_servicer/cloudinary/fullimg_{filename}'
+
+        with Image.open(f) as im:
+            im.save(tpath, "JPEG")
+            app.logger.info('Saved full image to path: %s', tpath)
+
+        img_url, img_key = PhotoService.upload_to_cloudinary(tpath, folder)
+        PhotoService.cleanup_tmp_file(tpath)
+
+        return (img_url, img_key)
+
+    @staticmethod
+    def post_photo_and_flush(data):
+        """
+        Create a new photo entry, flush it and return newly created object.
+        Session MUST BE committed later.
+        """
+        thumb_url, thumb_key = PhotoService.upload_thumbnail(data['file'], '/tmp_photo_thumb_sculptar_entry')
+        img_url, img_key = PhotoService.upload_photo(data['file'], '/tmp_photo_fullimg_sculptar_entry')
+        
+        photo = Photo(thumb_key=thumb_key, 
+                      thumb_url=thumb_url, 
+                      full_key=img_key, 
+                      full_url=img_url,
+                      filename=data['file'].filename,
+                      monument_id=data['monument_id'],
+                      user_id=current_user.id)
+
+        app.logger.info('[!] New photo entry: %s for monument %s', photo.id, photo.monument_id)
+
+        db.session.add(photo)
+        db.session.flush()
+        return photo
+
+

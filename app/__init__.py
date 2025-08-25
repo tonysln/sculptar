@@ -47,7 +47,7 @@ if not app.debug:
 
         app.logger.addHandler(file_handler)
         app.logger.setLevel(logging.INFO)
-        app.logger.info('Georgi Slavin homepage initialized')
+        app.logger.info('SCULPTURA TARBATUM initialized')
 
 
 from app import routes, models, errors

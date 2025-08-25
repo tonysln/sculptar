@@ -8,6 +8,40 @@
         <br>
         <a href="{{ url_for('create') }}">{{ 'Lisa uus' }}</a>
     </div>
+
+    <br>
+
+    <div class="monuments-list">
+        {% for item in entries %}
+                        
+        <div class="monument-entry" style="display: grid; grid-template-columns: 1fr 1fr;">
+            <div>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.creator }}</p>
+                <p>{{ item.comment }}</p>
+                <p>{{ item.links }}</p>
+                <br>
+                <p>Püstitatud: {{ item.built }}</p>
+                <p>OSM_ID: {{ item.osm_id }}</p>
+                <p>Wikidata: {{ item.wikidata }}</p>
+                <p>REG_ID: {{ item.reg_id }}</p>
+                <p>Mitu: {{ item.multiple }}</p>
+                <br>
+            </div>
+            
+            <div style="display: flex; flex-direction: row; gap: 16px;">
+                {% for photo in item.gallery %}
+                    <a href="{{ photo.full_url }}">
+                        <img src="{{ photo.thumb_url }}" alt="" style="height: 120px;">
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <br>
+
+        {% endfor %}
+    </div>
 </div>
 
 {% endblock %}

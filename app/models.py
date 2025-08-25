@@ -49,10 +49,10 @@ class Monument(db.Model):
     # Identification
     multiple:  so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False) # is group of monuments?
     # Estonian cultural monument ID:
-    reg_id:    so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True, index=True, unique=True)
+    reg_id:    so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True)
     # OpenStreetMap node ID:
-    osm_id:    so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True, unique=True)
-    wikidata:  so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True, unique=True)
+    osm_id:    so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True)
+    wikidata:  so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True)
     genre:     so.Mapped[Optional[str]] = so.mapped_column(sa.String(120), nullable=True) # ?
 
     # Location
@@ -100,8 +100,8 @@ class Monument(db.Model):
     created_at: so.Mapped[datetime] = so.mapped_column(index=True, default=lambda: datetime.now())
     last_edit:  so.Mapped[datetime] = so.mapped_column(index=True, default=lambda: datetime.now())
 
-    needs_info: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
-    needs_photos: so.Mapped[bool] = so.mapped_column(sa.Boolean, default=False)
+    needs_info: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime(timezone=True), index=True, nullable=True)
+    needs_photos: so.Mapped[Optional[datetime]] = so.mapped_column(sa.DateTime(timezone=True), index=True, nullable=True)
 
     def __repr__(self):
         return f'<Monument "{self.name}": {self.creator}>'
@@ -109,14 +109,13 @@ class Monument(db.Model):
 
 class Photo(db.Model):
     id:          so.Mapped[int] = so.mapped_column(primary_key=True)
-    caption:     so.Mapped[str] = so.mapped_column(sa.Text)
+    caption:     so.Mapped[Optional[str]] = so.mapped_column(sa.Text, nullable=True)
 
     thumb_key:   so.Mapped[str] = so.mapped_column(sa.String(512))
     full_key:    so.Mapped[str] = so.mapped_column(sa.String(512))
-    filename:    so.Mapped[str] = so.mapped_column(sa.String(512))
-    orig_fname:  so.Mapped[str] = so.mapped_column(sa.String(512))
-    thumb_url:   so.Mapped[Optional[str]] = so.mapped_column(sa.String(512), default="")
-    full_url:    so.Mapped[Optional[str]] = so.mapped_column(sa.String(512), default="")
+    thumb_url:   so.Mapped[str] = so.mapped_column(sa.String(512), index=True)
+    full_url:    so.Mapped[str] = so.mapped_column(sa.String(512))
+    filename:    so.Mapped[Optional[str]] = so.mapped_column(sa.String(512), nullable=True)
 
     monument_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Monument.id))
     user_id:     so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)

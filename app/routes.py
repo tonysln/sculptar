@@ -11,7 +11,7 @@ import random
 import os
 import uuid
 import json
-from .services import UserService
+from .services import UserService, MonumentService
 
 
 @app.route('/')
@@ -22,15 +22,45 @@ def index():
 
 @app.route('/monuments')
 def monuments():
-    return render_template('monuments.html', title='Skulptuurid')
+    items = MonumentService.get_all_monuments()
+    return render_template('monuments.html', title='Skulptuurid', entries=items)
 
 
-@app.route('/create')
+@app.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
     form = CreateEntryForm()
     if form.validate_on_submit():
-        pass
+        d = {'name': form.name.data.strip(), 
+            'creator': form.creator.data.strip(),
+            'comment': form.comment.data.strip(),
+            'links': form.links.data.strip(),
+            'built': form.built.data,
+            'multiple': form.multiple.data,
+            'reg_id': form.reg_id.data.strip(),
+            'osm_id': form.osm_id.data.strip(),
+            'wikidata': form.wikidata.data.strip(),
+            'genre': form.genre.data.strip(),
+            'lat': form.lat.data,
+            'lon': form.lon.data,
+            'width_cm': form.width_cm.data,
+            'length_cm': form.length_cm.data,
+            'height_cm': form.height_cm.data,
+            'last_seen': form.last_seen.data,
+            'country': form.country.data.strip(),
+            'locality': form.locality.data.strip(),
+            'address': form.address.data.strip(),
+            'zip_code': form.zip_code.data.strip()
+        }
+        if form.photos.data:
+            d['photos'] = form.photos.data
+
+        if form.order.data:
+            d['order'] = form.order.data
+
+        MonumentService.post_monument(d)
+
+        return redirect(url_for('monuments'))
 
     return render_template('create.html', title='Lisa uus skulptuur', form=form)
 
@@ -63,8 +93,8 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         # Check if user exists
-        user = UserService.get_user_by_username(form.username.data)
-        if user is None or not user.check_password(form.password.data): # verify password
+        user = UserService.get_user_by_username(form.username.data.strip())
+        if user is None or not user.check_password(form.password.data.strip()): # verify password
             flash('Vale kasutajanimi või parool')
             return redirect(url_for('login'))
 
@@ -88,10 +118,10 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        d = {'username': form.username.data, 
-            'email': form.email.data,
-            'full_name': form.full_name.data,
-            'password': form.password.data
+        d = {'username': form.username.data.strip(), 
+            'email': form.email.data.strip(),
+            'full_name': form.full_name.data.strip(),
+            'password': form.password.data.strip()
         }
         UserService.post_user(d)
         flash('Kasutaja loomine õnnestus!')

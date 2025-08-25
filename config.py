@@ -14,13 +14,13 @@ class Config:
     # S3_BUCKET_NAME = 's3bucket'
     # S3_REGION = 'eeur'
 
-    # CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
-    # CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
-    # CLOUDINARY_NAME = os.environ.get('CLOUDINARY_NAME')
+    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+    CLOUDINARY_NAME = os.environ.get('CLOUDINARY_NAME')
 
     LOG_TO_STDOUT = int(os.environ.get('LOG_TO_STDOUT') or 1)
     
-    MAX_CONTENT_LENGTH = 20 * 1000 * 1000
+    MAX_CONTENT_LENGTH = 50 * 1000 * 1000
     UPLOAD_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.tiff', '.jp2', '.j2k']
     THUMB_SIZE = (300,300)
 

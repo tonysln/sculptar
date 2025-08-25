@@ -17,12 +17,12 @@
 	    	<br>
 	    	<h3>Lisatud skulptuurid</h3>
 	    	<p>Kokku: {{ current_user.entries|length }}</p>
-	    	{% for item in current_user.entries %}
-	    	            
-	            <div style="text-align: center;">
-	                {{ item }}
-	            </div>
+	    	<br>
 
+	    	{% for item in current_user.entries %}
+            <div>
+                {{ item }}
+            </div>
 	        {% endfor %}
 	    </div>
     </div>

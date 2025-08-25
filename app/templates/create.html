@@ -10,28 +10,39 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
 <script>
-	$(function() {
-		// Default values for Country and City input fields
-		$("#country").val('EE');
-		$("#locality").val('Tartu');
+	async function reverseLookupCoordinates(lat, lon) {
+		let url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+        let res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:140.0) Gecko/20100101 Firefox/140.0' }});
+        let data = await res.json();
 
+         // if (data.osm_id)
+          	// $('#osm_id').attr('value', data.osm_id);
 
-		// Order of uploaded photos
-		let updatedIds = []; // TODO actually save order somehow, add to DB
+        if (data.address) {
+          	let a = data.address;
+          	if (a.city)
+          		$('#locality').attr('value', a.city);
 
-		$("#preview").sortable({placeholder: "ui-state-highlight"});
-	    $("#preview").disableSelection();
-	    $("#preview").sortable({
-	        update: function(event, ui) {
-	            updatedIds.push(ui.item[0]);
-	        }
-	    });
+          	if (a.postcode)
+          		$('#zip_code').attr('value', a.postcode);
 
+          	if (a.road) {
+          		let full_address = a.road;
 
+          		if (a.house_number)
+          			full_address += ' ' + a.house_number;
+
+          		$('#address').attr('value', full_address);
+          	}
+        }
+	}
+
+	function loadMap() {
 	    // Leaflet map
 	    const attr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 	    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 
+	    const DO_REVERSE_LOOKUP = false;
 	    const tartu = [58.378025, 26.728493];
 	    const lmap = L.map('map');
 	    const tiles = L.tileLayer(tileUrl);
@@ -41,47 +52,67 @@
 	    lmap.attributionControl.addAttribution(attr);
 	    lmap.setView(tartu, 13);
 	    lmap.on('click', async function(e) {
+	      // Set lat lon coordinates
           let lat = e.latlng.lat;
           let lon = e.latlng.lng;
-
-          // Reverse geocoding (Nominatim API)
-          let url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
-
-          let res = await fetch(url, { headers: { 'User-Agent': 'LeafletExample' }}); // TODO
-          let data = await res.json();
-
-          let address = data.display_name || "No address found"; // TODO extract street and ZIP
-
-          console.log(lat, lon, address);
+          $("#lat").attr('value', lat);
+          $("#lon").attr('value', lon);
           marker.setLatLng([lat, lon]);
           marker.addTo(lmap);
 
-          $("#lat").val(lat);
-          $("#lon").val(lon); // TODO also reverse -- update map based on inputs!?
+          // Reverse geocoding (Nominatim API)
+          if (DO_REVERSE_LOOKUP) { 
+	        reverseLookupCoordinates(lat, lon);
+      	  }
         });
+	}
+
+	function handlePhotoUpload() {
+		const preview = $("#preview")
+		preview.html("");
+
+    	Array.from($("#photos")[0].files).forEach((file,idx) => {
+    		if (!file.type.startsWith('image/')) 
+    			return;
+
+    		const img = $('<img />', {src: URL.createObjectURL(file), id: idx+1});
+    		preview.append(img);
+    	});
+	}
+
+	$(function() {
+		// Default values for Country and City input fields
+		$("#country").attr('value', 'EE');
+		$("#locality").attr('value', 'Tartu');
+
+
+		// Order of uploaded photos
+		let photosOrder = [];
+
+		$("#preview").sortable({placeholder: "ui-state-highlight"});
+	    $("#preview").disableSelection();
+	    $("#preview").sortable({
+	        update: function(event, ui) {
+	        	photosOrder = [];
+			    $("#preview img").each(function() {
+			        photosOrder.push($(this).attr('id'));
+			    });
+			    $("input[name='order']").attr('value', photosOrder.join(","));
+	        }
+	    });
+
+	    loadMap();
+
+        // Populate uploaded photo preview thumbnails 
+        $("#photos").on('change', handlePhotoUpload);
 	});
-
-
-	// Populate uploaded photo preview thumbnails 
-	const fi = document.getElementById('photos');
-	const preview = document.getElementById('preview');
-
-	fi.addEventListener('change', function() {
-	  	preview.innerHTML = ""; // clear old thumbnails
-		Array.from(fi.files).forEach(file => {
-			if (!file.type.startsWith('image/')) 
-				return;
-
-			const img = document.createElement('img');
-			img.src = URL.createObjectURL(file);
-			preview.appendChild(img);
-		});
-	}, false);
 </script>
 
 <div class="container">
 	<form action="" method="post" enctype="multipart/form-data" novalidate>
 		    {{ form.hidden_tag() }}
+
+		    <!-- {{ form.order }} -->
 
 		    <div class="page-info">
 		        <h3>{{ 'Lisa uus skulptuur' }}</h3>
@@ -187,8 +218,17 @@
 				</div>
 
 				<br>
-			    <div class="map-view" id="map"> 
-			    </div>
+				<p>Asukoht</p>
+				<div class="two-col">
+					<div class="map-view" id="map"> 
+			    	</div>
+
+			    	<div>
+			    		<p><em>Kliki kaardi peale, et määrata koordinaadid. Seejärel veendu, et aadress ja muud andmed on korrektsed!</em></p>
+			    		<!-- <br> -->
+			    		<!-- <p><em>Andmed © OpenStreetMap contributors, ODbL 1.0. <a href="http://osm.org/copyright">http://osm.org/copyright</a></em></p> -->
+			    	</div>
+				</div>
 			    <br>
 
 				<div class="two-col">

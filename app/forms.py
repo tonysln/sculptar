@@ -1,11 +1,18 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import MultipleFileField, FileRequired, FileAllowed, FileSize
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, DateField, FloatField, IntegerField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, DateField, FloatField, IntegerField, HiddenField
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, NumberRange, Length, Optional
 import sqlalchemy as sa
 from app import db, app
 from app.models import User
 # from flask_babel import lazy_gettext as _l
+
+
+def order_validator(form, field):
+    legal_chars = '1234567890,'
+    for c in field.data:
+        if c not in legal_chars:
+            raise ValidationError('Piltide järjekord vigane! Palun võta ühendust administraatoriga.')
 
 
 class LoginForm(FlaskForm):
@@ -35,16 +42,15 @@ class RegistrationForm(FlaskForm):
 
 
 class CreateEntryForm(FlaskForm):
-    photos = MultipleFileField('Photos', validators=[FileRequired(), 
-                                FileSize(app.config['MAX_CONTENT_LENGTH'], 'Vähemalt üks valitud piltidest on liiga suur!'),
-                                FileAllowed(app.config['UPLOAD_EXTENSIONS'], 'Üles laadida saab ainult pilte!')])
+    photos = MultipleFileField('Photos')
+    order = HiddenField('Order', validators=[order_validator])
 
     name = StringField('Nimi', validators=[DataRequired()])
     creator = StringField('Autor', validators=[DataRequired()])
     comment = TextAreaField('Kirjeldus')
     links = TextAreaField('Lingid')
 
-    built = DateField('Ehitatud', validators=[DataRequired()])
+    built = DateField('Püstitatud', validators=[DataRequired()])
 
     multiple = BooleanField('See monument koosneb mitmest osast')
     reg_id = StringField('Kultuurimälestiste registri nr')
@@ -52,19 +58,19 @@ class CreateEntryForm(FlaskForm):
     wikidata = StringField('Wikidata ID')
 
     genre = StringField('Skulptuuri liik')
-    lat = FloatField('Laiuskraad', validators=[DataRequired()])
-    lon = FloatField('Pikkuskraad', validators=[DataRequired()])
+    lat = FloatField('Laiuskraad', validators=[DataRequired(), NumberRange(min=-90, max=90)])
+    lon = FloatField('Pikkuskraad', validators=[DataRequired(), NumberRange(min=-180, max=180)])
 
-    width_cm = IntegerField('Laius (cm)')
-    length_cm = IntegerField('Pikkus (cm)')
-    height_cm = IntegerField('Kõrgus (cm)')
+    width_cm = IntegerField('Laius (cm)', validators=[Optional()])
+    length_cm = IntegerField('Pikkus (cm)', validators=[Optional()])
+    height_cm = IntegerField('Kõrgus (cm)', validators=[Optional()])
 
     last_seen = DateField('Viimati nähtud', validators=[DataRequired()])
 
-    country = StringField('Riik (EE)', validators=[DataRequired()])
+    country = StringField('Riik', validators=[DataRequired(), Length(min=2, max=3, message="Riigikood on vale!")])
     locality = StringField('Linn', validators=[DataRequired()])
     address = StringField('Aadress', validators=[DataRequired()])
-    zip_code = StringField('Sihtnumber', validators=[DataRequired()])
+    zip_code = StringField('Sihtnumber', validators=[DataRequired(), Length(min=2, max=15, message="Sihtnumbri kuju on ebakorrektne!")])
     
     submit = SubmitField('Loo kirje')
     # cancel = SubmitField('Cancel')
