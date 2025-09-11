@@ -21,24 +21,24 @@
                     <h1>SCULPTURA TARBATUM</h1>
 
                     <nav>
-                        <a href="{{ url_for('index') }}">{{ 'Kodu' }}</a>
-                        | <a href="{{ url_for('monuments') }}">{{ 'Skulptuurid' }}</a>
-                        | <a href="{{ url_for('map') }}">{{ 'Kaart' }}</a>
+                        <a href="{{ url_for('main.index') }}">{{ 'Kodu' }}</a>
+                        | <a href="{{ url_for('main.monuments') }}">{{ 'Skulptuurid' }}</a>
+                        | <a href="{{ url_for('main.map') }}">{{ 'Kaart' }}</a>
                         
                         {% if current_user.is_anonymous %}
                         
-                        | <a href="{{ url_for('register') }}">{{ 'Registreeru' }}</a>
-                        | <a href="{{ url_for('login') }}">{{ 'Logi sisse' }}</a>
+                        | <a href="{{ url_for('auth.register') }}">{{ 'Registreeru' }}</a>
+                        | <a href="{{ url_for('auth.login') }}">{{ 'Logi sisse' }}</a>
                         
                         {% else %}
 
-                        | <a href="{{ url_for('account') }}">{{ 'Konto' }}</a>
+                        | <a href="{{ url_for('main.account') }}">{{ 'Konto' }}</a>
 
                         {% if current_user.is_admin %}
-                        | <a href="{{ url_for('admin') }}">{{ 'Admin' }}</a>
+                        | <a href="{{ url_for('main.admin') }}">{{ 'Admin' }}</a>
                         {% endif %}
 
-                        | <a href="{{ url_for('logout') }}">{{ 'Logi välja' }}</a>
+                        | <a href="{{ url_for('auth.logout') }}">{{ 'Logi välja' }}</a>
                         
                         {% endif %}
                     </nav>

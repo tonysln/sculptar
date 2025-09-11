@@ -1,17 +1,16 @@
-from flask import make_response
-from app.models import User, Monument, Photo
+from flask import make_response, current_app
 from flask_login import login_user, current_user
 from werkzeug.utils import secure_filename
-from app import app, db
 import sqlalchemy as sa
 from sqlalchemy.orm import joinedload, load_only
 from PIL import Image
-import cloudinary
 import cloudinary.uploader
 import cloudinary.exceptions
 from datetime import datetime
 import uuid
 import os
+from app import db
+from app.models import User, Monument, Photo
 
 
 class UserService():
@@ -37,7 +36,7 @@ class UserService():
                     full_name=data['full_name'])
         user.set_password(data['password'])
 
-        app.logger.info('[!] New user registration: %s - %s', user.username, user.full_name, user.email)
+        # current_app.logger.info('[!] New user registration: %s - %s', user.username, user.full_name, user.email)
         new_user_id = user.id
 
         db.session.add(user)
@@ -64,7 +63,7 @@ class MonumentService():
             new_photo = PhotoService.post_photo_and_flush(pdata)
             monument.gallery.append(new_photo)
 
-        app.logger.info('[!] New monument entry: %s, created by: %s', monument.name, current_user.username)
+        # current_app.logger.info('[!] New monument entry: %s, created by: %s', monument.name, current_user.username)
         new_monument_id = monument.id
 
         db.session.commit()
@@ -114,13 +113,6 @@ class MonumentService():
 
 
 class PhotoService():
-    cloudinary.config(
-        cloud_name = app.config['CLOUDINARY_NAME'],
-        api_key = app.config['CLOUDINARY_API_KEY'],
-        api_secret = app.config['CLOUDINARY_API_SECRET'],
-        secure = True
-    )
-
     @staticmethod
     def generate_safe_filename(fname):
         orig_filename = secure_filename(fname)
@@ -136,7 +128,7 @@ class PhotoService():
         fkey = upload_result["public_id"]
         assert furl
         assert fkey
-        app.logger.info('Uploaded image to cloudinary: %s', fkey)
+        # current_app.logger.info('Uploaded image to cloudinary: %s', fkey)
         return (furl, fkey)
 
     @staticmethod
@@ -144,7 +136,8 @@ class PhotoService():
         try:
             os.remove(fpath)
         except OSError as e:
-            app.logger.info('Failed to delete temporary image files from /tmp: %s', e)
+            pass
+            # current_app.logger.info('Failed to delete temporary image files from /tmp: %s', e)
 
     @staticmethod
     def upload_thumbnail(f, folder='/thumb'):
@@ -152,9 +145,9 @@ class PhotoService():
         tpath = f'/tmp/webapp/flask_upload_servicer/cloudinary/thumb_{filename}'
 
         with Image.open(f) as im:
-            im.thumbnail(app.config['THUMB_SIZE'])
+            im.thumbnail(current_app.config['THUMB_SIZE'])
             im.save(tpath, "JPEG")
-            app.logger.info('Saved resized thumbnail to tmp path: %s', tpath)
+            # current_app.logger.info('Saved resized thumbnail to tmp path: %s', tpath)
 
         thumb_url, thumb_key = PhotoService.upload_to_cloudinary(tpath, folder)
         PhotoService.cleanup_tmp_file(tpath)
@@ -168,7 +161,7 @@ class PhotoService():
 
         with Image.open(f) as im:
             im.save(tpath, "JPEG")
-            app.logger.info('Saved full image to path: %s', tpath)
+            # current_app.logger.info('Saved full image to path: %s', tpath)
 
         img_url, img_key = PhotoService.upload_to_cloudinary(tpath, folder)
         PhotoService.cleanup_tmp_file(tpath)
@@ -192,7 +185,7 @@ class PhotoService():
                       monument_id=data['monument_id'],
                       user_id=current_user.id)
 
-        app.logger.info('[!] New photo entry: %s for monument %s', photo.id, photo.monument_id)
+        # current_app.logger.info('[!] New photo entry: %s for monument %s', photo.id, photo.monument_id)
 
         db.session.add(photo)
         db.session.flush()
