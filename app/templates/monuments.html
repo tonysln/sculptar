@@ -21,7 +21,7 @@
                 <p>{{ item.comment }}</p>
                 <p>{{ item.links }}</p>
                 <br>
-                <p>Püstitatud: {{ item.built }}</p>
+                <p>Püstitatud: {{ moment(item.built).format('YYYY') }}</p>
                 <p>OSM_ID: {{ item.osm_id }}</p>
                 <p>Wikidata: {{ item.wikidata }}</p>
                 <p>REG_ID: {{ item.reg_id }}</p>

@@ -15,7 +15,7 @@ class LoginForm(FlaskForm):
 
 class RegistrationForm(FlaskForm):
     username = StringField('Kasutajanimi', validators=[DataRequired()])
-    email = StringField('Meil', validators=[DataRequired(), Email()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     full_name = StringField('Nimi', validators=[DataRequired()])
     password = PasswordField('Parool', validators=[DataRequired()])
     password2 = PasswordField('Korda parool', validators=[DataRequired(), EqualTo('password')])
@@ -30,3 +30,8 @@ class RegistrationForm(FlaskForm):
         user = db.session.scalar(sa.select(User).where(User.email == email.data))
         if user is not None:
             raise ValidationError('Palun kasuta teine meiliaadress.')
+
+
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Saada link')

@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from urllib.parse import urlsplit
 from app import db
 from app.auth import bp
-from app.auth.forms import LoginForm, RegistrationForm
+from app.auth.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm
 from app.models import User, Monument, Photo
 # from flask_babel import _
 from math import ceil
@@ -66,3 +66,19 @@ def register():
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html', title='Registreeru', form=form)
+
+
+@bp.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        # user = db.session.scalar(sa.select(User).where(User.email == form.email.data))
+        # if user:
+            # send_password_reset_email(user)
+        # flash('Check your email for the instructions to reset your password')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/reset_password_request.html', title='Parooli taastamine', form=form)
