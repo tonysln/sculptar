@@ -21,10 +21,10 @@
         if (data.address) {
           	let a = data.address;
           	if (a.city)
-          		$('#locality').attr('value', a.city);
+          		_id('locality').setAttribute('value', a.city);
 
           	if (a.postcode)
-          		$('#zip_code').attr('value', a.postcode);
+          		_id('zip_code').setAttribute('value', a.postcode);
 
           	if (a.road) {
           		let full_address = a.road;
@@ -32,7 +32,7 @@
           		if (a.house_number)
           			full_address += ' ' + a.house_number;
 
-          		$('#address').attr('value', full_address);
+          		_id('address').setAttribute('value', full_address);
           	}
         }
 	}
@@ -55,8 +55,8 @@
 	      // Set lat lon coordinates
           let lat = e.latlng.lat;
           let lon = e.latlng.lng;
-          $("#lat").attr('value', lat);
-          $("#lon").attr('value', lon);
+          _id('lat').setAttribute('value', lat);
+          _id('lon').setAttribute('value', lon);
           marker.setLatLng([lat, lon]);
           marker.addTo(lmap);
 
@@ -68,43 +68,42 @@
 	}
 
 	function handlePhotoUpload() {
-		const preview = $("#preview")
-		preview.html("");
+		const preview = _id('preview');
+		preview.innerHTML = '';
 
-    	Array.from($("#photos")[0].files).forEach((file,idx) => {
+    	Array.from(_id("photos").files).forEach((file,idx) => {
     		if (!file.type.startsWith('image/')) 
     			return;
 
-    		const img = $('<img />', {src: URL.createObjectURL(file), id: idx+1});
-    		preview.append(img);
+    		const template = document.createElement('template');
+    		template.innerHTML = `<img src="${URL.createObjectURL(file)}" id="${idx+1}" />`.trim();
+    		append(preview, template.content.cloneNode(true));
     	});
 	}
 
-	$(function() {
+	document.addEventListener('DOMContentLoaded', function() {
 		// Default values for Country and City input fields
-		$("#country").attr('value', 'EE');
-		$("#locality").attr('value', 'Tartu');
-
+		_id('country').setAttribute('value', 'EE');
+		_id('locality').setAttribute('value', 'Tartu');
 
 		// Order of uploaded photos
 		let photosOrder = [];
 
-		$("#preview").sortable({placeholder: "ui-state-highlight"});
-	    $("#preview").disableSelection();
+	    addClass(_id("preview"), 'non-selectable');
 	    $("#preview").sortable({
 	        update: function(event, ui) {
 	        	photosOrder = [];
-			    $("#preview img").each(function() {
-			        photosOrder.push($(this).attr('id'));
+			    document.querySelectorAll("#preview img").forEach((el, i) => {
+			    	photosOrder.push(el.getAttribute('id'));
 			    });
-			    $("input[name='order']").attr('value', photosOrder.join(","));
+			    document.querySelector("input[name='order']").setAttribute('value', photosOrder.join(","));
 	        }
 	    });
 
 	    loadMap();
 
         // Populate uploaded photo preview thumbnails 
-        $("#photos").on('change', handlePhotoUpload);
+        _id('photos').addEventListener('change', handlePhotoUpload);
 	});
 </script>
 

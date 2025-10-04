@@ -1,5 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+
 body, html {
-    font-family: "Garamond", serif;
+/*    font-family: "Garamond", serif;*/
+    font-family: "Mullish", sans-serif;
     background-color: #fff9e6;
 }
 
@@ -83,6 +87,14 @@ footer {
     display: block;
     width: 85%;
     height: 300px;
+}
+
+.non-selectable {
+   -ms-user-select: none;
+   -moz-user-select: -moz-none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+   user-select: none;
 }
 
 
