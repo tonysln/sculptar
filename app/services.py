@@ -70,6 +70,28 @@ class MonumentService():
         return new_monument_id
 
     @staticmethod
+    def delete_monument(_id):
+        obj = db.one_or_404(db.select(Monument).filter_by(id=_id))
+        for photo in obj.gallery:
+            PhotoService.delete_photo(photo.id) # TODO use the Photo obj right away?
+
+        db.session.delete(obj)
+        db.session.commit()
+        return obj.id
+
+    @staticmethod
+    def mark_monument_as_needs_info(_id):
+        obj = db.one_or_404(db.select(Monument).filter_by(id=_id))
+        obj.needs_info = True
+        db.session.flush()
+        db.session.commit()
+        return obj.id
+
+    @staticmethod
+    def link_moved_monument(data):
+        pass
+
+    @staticmethod
     def get_all_monuments_with_photos():
         """Fetch and return all monuments, excluding photo keys and filename fields"""
         items = db.session.scalars(db.select(Monument).order_by(Monument.created_at.desc())).all()
@@ -136,8 +158,31 @@ class PhotoService():
         try:
             os.remove(fpath)
         except OSError as e:
-            pass
-            # current_app.logger.info('Failed to delete temporary image files from /tmp: %s', e)
+            print('Failed to delete temporary image files from /tmp: %s', e)
+
+    @staticmethod
+    def delete_photo(_id):
+        obj = db.one_or_404(db.select(Photo).filter_by(id=_id))
+        db.session.delete(obj)
+
+        tk = obj.thumb_key
+        if tk:
+            try:
+                cloudinary.uploader.destroy(tk, resource_type="image")
+            except cloudinary.exceptions.Error as e:
+                print('Error deleting thumbnail from Cloudinary:', e)
+                return False
+
+        fk = obj.full_key
+        if fk:
+            try:
+                cloudinary.uploader.destroy(fk, resource_type="image")
+            except cloudinary.exceptions.Error as e:
+                print('Error deleting full image from Cloudinary:', e)
+                return False
+
+        db.session.commit()
+        return obj.id
 
     @staticmethod
     def upload_thumbnail(f, folder='/thumb'):

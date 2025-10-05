@@ -22,10 +22,18 @@
                 <p>{{ item.links }}</p>
                 <br>
                 <p>Püstitatud: {{ moment(item.built).format('YYYY') }}</p>
+
+                {% if item.osm_id %}
                 <p>OSM_ID: {{ item.osm_id }}</p>
+                {% endif %}
+
+                {% if item.wikidata %}
                 <p>Wikidata: {{ item.wikidata }}</p>
+                {% endif %}
+                
+                {% if item.reg_id %}
                 <p>REG_ID: {{ item.reg_id }}</p>
-                <p>Mitu: {{ item.multiple }}</p>
+                {% endif %}
                 <br>
             </div>
             
