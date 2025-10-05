@@ -1,4 +1,4 @@
-from flask import abort, render_template, flash, redirect, url_for, request, send_from_directory
+from flask import abort, render_template, flash, redirect, url_for, request, send_from_directory, make_response
 from flask_login import current_user, logout_user, login_required
 import sqlalchemy as sa
 from urllib.parse import urlsplit
@@ -31,6 +31,24 @@ def map():
 def monuments():
     items = MonumentService.get_all_monuments_with_photos()
     return render_template('monuments.html', title='Skulptuurid', entries=items)
+
+
+@bp.route('/monument/<_id>', methods=['DELETE'])
+def delete_monument(_id):
+    res = MonumentService.delete_monument(_id)
+    if int(res) == _id:
+        return redirect(url_for('main.monuments'))
+
+    return make_response({'msg': 'Server Error'}, 500)
+
+
+@bp.route('/monument/<_id>/needs_info', methods=['POST'])
+def mark_monument_needs_info(_id):
+    res = MonumentService.mark_monument_as_needs_info(_id)
+    if int(res) == _id:
+        return redirect(url_for('main.monuments'))
+
+    return make_response({'msg': 'Server Error'}, 500)
 
 
 @bp.route('/create', methods=['GET', 'POST'])
