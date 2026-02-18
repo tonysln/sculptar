@@ -8,3 +8,5 @@ htmlcov/
 docs/_build/
 .env
 *.db
+materials/
+tmp/
